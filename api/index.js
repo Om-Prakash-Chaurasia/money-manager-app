@@ -5,13 +5,30 @@ let appInstance = null;
 
 export default async function handler(req, res) {
   try {
-    // Ensure MongoDB is connected
+    // Ensure MongoDB connection is established / reused
     await connectDB();
 
-    // Initialize Express application instance once
+    // Lazy load Express app singleton
     if (!appInstance) {
       appInstance = createApp();
     }
+
+    // Normalize URL for Express routing
+    let originalUrl = req.url || '/';
+    
+    // If Vercel passed catch-all path params
+    if (req.query && req.query.path) {
+      const subpath = Array.isArray(req.query.path)
+        ? req.query.path.join('/')
+        : req.query.path;
+      originalUrl = `/api/${subpath}`;
+    } else if (!originalUrl.startsWith('/api')) {
+      originalUrl = `/api${originalUrl.startsWith('/') ? originalUrl : '/' + originalUrl}`;
+    }
+
+    req.url = originalUrl;
+
+    console.log(`[Vercel Serverless] ${req.method} ${req.url}`);
 
     // Forward request and response to Express
     return appInstance(req, res);

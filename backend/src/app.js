@@ -94,7 +94,7 @@ export const createApp = () => {
   app.use('/api', generalLimiter);
 
   // Health Check Endpoint
-  app.get('/api/health', (req, res) => {
+  app.get(['/api/health', '/health', '/api'], (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Money Manager API is operational',

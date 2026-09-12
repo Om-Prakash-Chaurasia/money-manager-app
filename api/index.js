@@ -14,19 +14,21 @@ export default async function handler(req, res) {
     }
 
     // Normalize URL for Express routing
-    let originalUrl = req.url || '/';
+    let targetPath = req.url || '/';
     
-    // If Vercel passed catch-all path params
+    // Check if path is passed via Vercel query rewrite or catch-all param
     if (req.query && req.query.path) {
       const subpath = Array.isArray(req.query.path)
         ? req.query.path.join('/')
         : req.query.path;
-      originalUrl = `/api/${subpath}`;
-    } else if (!originalUrl.startsWith('/api')) {
-      originalUrl = `/api${originalUrl.startsWith('/') ? originalUrl : '/' + originalUrl}`;
+      const cleanSubpath = subpath.split('?')[0];
+      targetPath = `/api/${cleanSubpath}`;
+    } else if (!targetPath.startsWith('/api')) {
+      targetPath = `/api${targetPath.startsWith('/') ? targetPath : '/' + targetPath}`;
     }
 
-    req.url = originalUrl;
+    req.url = targetPath;
+    req.originalUrl = targetPath;
 
     console.log(`[Vercel Serverless] ${req.method} ${req.url}`);
 

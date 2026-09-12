@@ -15,6 +15,7 @@ export const connectDB = async () => {
     const opts = {
       autoIndex: env.NODE_ENV !== 'production',
       serverSelectionTimeoutMS: 5000,
+      ...(env.MONGODB_URI?.includes('mongodb+srv://') ? { authSource: 'admin' } : {}),
     };
 
     cachedPromise = mongoose.connect(env.MONGODB_URI, opts).then((m) => {

@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # MongoDB database instance
+  mongodb:
+    image: mongo:7-jammy
+    container_name: money_manager_mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    environment:
+      - MONGO_INITDB_DATABASE=money_manager_db
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - money_manager_network
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Backend Express API service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: money_manager_backend
+    restart: unless-stopped
+    ports:
+      - '5001:5001'
+    environment:
+      - PORT=5001
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/money_manager_db
+      - JWT_ACCESS_SECRET=production_jwt_access_secret_key_change_me_in_prod_2026
+      - JWT_REFRESH_SECRET=production_jwt_refresh_secret_key_change_me_in_prod_2026
+      - JWT_ACCESS_EXPIRES_IN=15m
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - CLIENT_URL=http://localhost:3000
+      - UPLOAD_DIR=uploads
+      - MAX_FILE_SIZE_MB=5
+    volumes:
+      - backend_uploads:/app/uploads
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - money_manager_network
+
+  # Frontend Nginx & React SPA service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: money_manager_frontend
+    restart: unless-stopped
+    ports:
+      - '3000:80'
+    depends_on:
+      - backend
+    networks:
+      - money_manager_network
+
+volumes:
+  mongodb_data:
+    driver: local
+  backend_uploads:
+    driver: local
+
+networks:
+  money_manager_network:
+    driver: bridge

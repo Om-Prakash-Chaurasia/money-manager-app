@@ -37,7 +37,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Serverless Handler Error:', error);
     const rawUri = process.env.MONGODB_URI || '';
-    const sanitizedUri = rawUri ? rawUri.replace(/:([^@]+)@/, ':****@') : 'NOT_SET';
+    const sanitizedUri = rawUri ? rawUri.replace(/\/\/([^:]+):([^@]+)@/, '//$1:****@') : 'NOT_SET';
     return res.status(500).json({
       success: false,
       message: 'Internal Server Error',

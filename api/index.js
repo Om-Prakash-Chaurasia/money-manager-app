@@ -36,10 +36,13 @@ export default async function handler(req, res) {
     return appInstance(req, res);
   } catch (error) {
     console.error('Serverless Handler Error:', error);
+    const rawUri = process.env.MONGODB_URI || '';
+    const sanitizedUri = rawUri ? rawUri.replace(/:([^@]+)@/, ':****@') : 'NOT_SET';
     return res.status(500).json({
       success: false,
       message: 'Internal Server Error',
-      error: error.message
+      error: error.message,
+      uri: sanitizedUri
     });
   }
 }

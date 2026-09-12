@@ -9,6 +9,8 @@ coverage/
 # Production
 build/
 dist/
+frontend/dist/
+.vercel/
 
 # Environment
 .env

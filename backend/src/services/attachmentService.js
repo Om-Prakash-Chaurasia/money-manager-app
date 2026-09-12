@@ -11,7 +11,9 @@ import { logger } from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const uploadDirectory = path.resolve(__dirname, '../../', env.UPLOAD_DIR);
+const uploadDirectory = process.env.VERCEL
+  ? path.join('/tmp', env.UPLOAD_DIR)
+  : path.resolve(__dirname, '../../', env.UPLOAD_DIR);
 
 class AttachmentService {
   /**

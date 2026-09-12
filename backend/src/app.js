@@ -50,6 +50,8 @@ export const createApp = () => {
         if (!origin) return callback(null, true);
         if (env.NODE_ENV === 'development') return callback(null, true);
         if (origin === env.CLIENT_URL) return callback(null, true);
+        // Allow Vercel preview & production deployments
+        if (origin.endsWith('.vercel.app') || process.env.VERCEL) return callback(null, true);
         return callback(new AppError('Blocked by CORS policy', 403));
       },
       credentials: true,
@@ -73,10 +75,16 @@ export const createApp = () => {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-  // Create uploads directory if not exists
-  const uploadPath = path.resolve(__dirname, '../', env.UPLOAD_DIR);
-  if (!fs.existsSync(uploadPath)) {
-    fs.mkdirSync(uploadPath, { recursive: true });
+  // Create uploads directory if not exists (safe for serverless read-only filesystems)
+  const uploadPath = process.env.VERCEL
+    ? path.join('/tmp', env.UPLOAD_DIR)
+    : path.resolve(__dirname, '../', env.UPLOAD_DIR);
+  try {
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+  } catch (err) {
+    logger.warn(`Uploads directory creation skipped: ${err.message}`);
   }
 
   // Static Assets for uploads

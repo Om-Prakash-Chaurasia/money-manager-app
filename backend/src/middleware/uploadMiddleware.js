@@ -10,9 +10,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Upload destination directory
-const uploadDirectory = path.resolve(__dirname, '../../', env.UPLOAD_DIR);
-if (!fs.existsSync(uploadDirectory)) {
-  fs.mkdirSync(uploadDirectory, { recursive: true });
+const uploadDirectory = process.env.VERCEL
+  ? path.join('/tmp', env.UPLOAD_DIR)
+  : path.resolve(__dirname, '../../', env.UPLOAD_DIR);
+
+try {
+  if (!fs.existsSync(uploadDirectory)) {
+    fs.mkdirSync(uploadDirectory, { recursive: true });
+  }
+} catch (err) {
+  // Fail-safe for read-only serverless filesystems
 }
 
 // Storage engine configuration

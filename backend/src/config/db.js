@@ -2,15 +2,36 @@ import mongoose from 'mongoose';
 import { env } from './env.js';
 import { logger } from '../utils/logger.js';
 
+let cachedConn = null;
+let cachedPromise = null;
+
 export const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(env.MONGODB_URI, {
-      autoIndex: true, // Build indexes automatically in development
+  // If already connected and connection is ready, reuse it
+  if (cachedConn && mongoose.connection.readyState >= 1) {
+    return cachedConn;
+  }
+
+  if (!cachedPromise) {
+    const opts = {
+      autoIndex: env.NODE_ENV !== 'production',
+      serverSelectionTimeoutMS: 5000,
+    };
+
+    cachedPromise = mongoose.connect(env.MONGODB_URI, opts).then((m) => {
+      logger.info(`MongoDB Connected: ${m.connection.host}/${m.connection.name}`);
+      return m;
     });
-    logger.info(`MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
-    return conn;
+  }
+
+  try {
+    cachedConn = await cachedPromise;
+    return cachedConn;
   } catch (error) {
+    cachedPromise = null;
     logger.error(`Error connecting to MongoDB: ${error.message}`);
+    if (process.env.VERCEL) {
+      throw error;
+    }
     process.exit(1);
   }
 };

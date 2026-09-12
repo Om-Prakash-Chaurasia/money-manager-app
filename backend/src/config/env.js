@@ -11,7 +11,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: parseInt(process.env.PORT || '5001', 10),
-  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/money_manager_db',
+  MONGODB_URI: (process.env.MONGODB_URI || 'mongodb://localhost:27017/money_manager_db').trim(),
   
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || 'dev_jwt_access_secret_min_32_characters_long_key',
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'dev_jwt_refresh_secret_min_32_characters_long_key',

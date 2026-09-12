@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     return res.status(500).json({
       success: false,
       message: 'Internal Server Error',
-      error: process.env.NODE_ENV === 'production' ? 'Server configuration or database error' : error.message
+      error: error.message
     });
   }
 }
